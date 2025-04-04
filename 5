@@ -1,0 +1,83 @@
+import pandas as pd
+
+Define the dataset
+data = {
+    'Outlook': ['Sunny', 'Sunny', 'Overcast', 'Rain', 'Rain', 'Rain', 'Overcast', 'Sunny', 'Sunny', 'Rain', 'Sunny', 'Overcast', 'Overcast', 'Rain'],
+    'Temperature': ['Hot', 'Hot', 'Hot', 'Mild', 'Cool', 'Cool', 'Cool', 'Mild', 'Cool', 'Mild', 'Mild', 'Mild', 'Hot', 'Mild'],
+    'Humidity': ['High', 'High', 'High', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'High'],
+    'Wind': ['Weak', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong', 'Strong', 'Weak', 'Strong'],
+    'Play': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No', 'Yes', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+
+Define the ID3 algorithm
+def id3(df, target_attribute):
+    # Base case: If all instances have the same target value, return that value
+    if len(df[target_attribute].unique()) == 1:
+        return df[target_attribute].unique()[0]
+
+    # Select the attribute with the highest information gain
+    attribute = select_attribute(df, target_attribute)
+    tree = {attribute: {}}
+
+    # Recursively build the decision tree
+    for value in df[attribute].unique():
+        subtree = id3(df[df[attribute] == value], target_attribute)
+        tree[attribute][value] = subtree
+
+    return tree
+
+def select_attribute(df, target_attribute):
+    # Calculate the entropy of the target attribute
+    entropy = calculate_entropy(df, target_attribute)
+
+    # Calculate the information gain for each attribute
+    information_gains = {}
+    for attribute in df.columns:
+        if attribute != target_attribute:
+            information_gain = entropy - calculate_conditional_entropy(df, attribute, target_attribute)
+            information_gains[attribute] = information_gain
+
+    # Return the attribute with the highest information gain
+    return max(information_gains, key=information_gains.get)
+
+def calculate_entropy(df, target_attribute):
+    # Calculate the entropy of the target attribute
+    entropy = 0
+    for value in df[target_attribute].unique():
+        probability = len(df[df[target_attribute] == value]) / len(df)
+        entropy -= probability * (probability * 1).bit_length()
+    return entropy
+
+def calculate_conditional_entropy(df, attribute, target_attribute):
+    # Calculate the conditional entropy of the target attribute given the attribute
+    conditional_entropy = 0
+    for value in df[attribute].unique():
+        subset = df[df[attribute] == value]
+        entropy = calculate_entropy(subset, target_attribute)
+        conditional_entropy += (len(subset) / len(df)) * entropy
+    return conditional_entropy
+
+Build the decision tree
+tree = id3(df, 'Play')
+
+Print the decision tree
+print("Decision Tree:")
+print(tree)
+
+Classify a new sample
+new_sample = pd.DataFrame({'Outlook': ['Sunny'], 'Temperature': ['Mild'], 'Humidity': ['Normal'], 'Wind': ['Weak']})
+print("\nClassifying new sample:")
+print(new_sample)
+
+def classify(sample, tree):
+    attribute = list(tree.keys())[0]
+    value = sample[attribute].iloc[0]
+    if isinstance(tree[attribute][value], dict):
+        return classify(sample, tree[attribute][value])
+    else:
+        return tree[attribute][value]
+
+classification = classify(new_sample, tree)
+print("\nClassification:", classification)
