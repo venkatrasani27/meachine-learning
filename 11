@@ -1,0 +1,51 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.preprocessing import StandardScaler
+
+# Step 1: Create a simulated dataset for Bank Loan Prediction
+# In practice, replace this with pd.read_csv('bank_loan_data.csv')
+data = {
+    'age': np.random.randint(18, 65, 100),                # Age of the applicant
+    'income': np.random.randint(30000, 120000, 100),      # Annual income
+    'credit_score': np.random.randint(300, 850, 100),     # Credit score
+    'loan_amount': np.random.randint(1000, 50000, 100),   # Requested loan amount
+    'approved': np.random.randint(0, 2, 100)              # Loan approved (1) or rejected (0)
+}
+
+df = pd.DataFrame(data)
+
+# Step 2: Preprocess the data
+# Separate features (X) and target variable (y)
+X = df.drop('approved', axis=1)  # Features
+y = df['approved']               # Target (loan approval status)
+
+# Split the dataset into training and testing sets (70% training, 30% testing)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 3: Standardize the features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Step 4: Train the Gaussian Naive Bayes model
+nb_model = GaussianNB()
+nb_model.fit(X_train_scaled, y_train)
+
+# Step 5: Make predictions
+y_pred = nb_model.predict(X_test_scaled)
+
+# Step 6: Evaluate the model's performance
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+
+# Step 7: Display the results
+print(f"Accuracy: {accuracy:.4f}")
+print("\nConfusion Matrix:")
+print(conf_matrix)
+print("\nClassification Report:")
+print(class_report)
