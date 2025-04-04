@@ -1,0 +1,69 @@
+import csv
+import itertools
+
+class CandidateElimination:
+    def __init__(self, attributes, target_concept):
+        self.attributes = attributes
+        self.target_concept = target_concept
+        self.G = self.initialize_G()
+        self.S = self.initialize_S()
+
+    def initialize_G(self):
+        G = []
+        for attribute in self.attributes:
+            G.append([attribute, '*'])
+        return G
+
+    def initialize_S(self):
+        S = []
+        for attribute in self.attributes:
+            S.append([attribute, '?'])
+        return S
+
+    def read_csv(self, filename):
+        data = []
+        with open(filename, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                data.append(row)
+        return data
+
+    def candidate_elimination(self, data):
+        for example in data:
+            if example[self.target_concept] == 'yes':
+                self.S = self.refine_S(example)
+            else:
+                self.G = self.refine_G(example)
+        return self.G, self.S
+
+    def refine_S(self, example):
+        S_new = []
+        for attribute, value in self.S:
+            if example[attribute] == value or value == '?':
+                S_new.append([attribute, value])
+        return S_new
+
+    def refine_G(self, example):
+        G_new = []
+        for attribute, value in self.G:
+            if example[attribute] != value or value == '*':
+                G_new.append([attribute, value])
+        return G_new
+
+    def print_hypotheses(self, G, S):
+        print("Description of the set of all hypotheses consistent with the training examples:")
+        for attribute, value in G:
+            print(f"{attribute}: {value}")
+        print("\n")
+        for attribute, value in S:
+            print(f"{attribute}: {value}")
+
+Example usage:
+attributes = ['has_fur', '', 'is_carnivore']
+target_concept = 'mammal'
+filename = 'training_data.csv'
+
+ce = CandidateElimination(attributes, target_concept)
+data = ce.read_csv(filename)
+G, S = ce.candidate_elimination(data)
+ce.print_hypotheses(G, S)
