@@ -1,0 +1,61 @@
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+
+# Step 1: Load the dataset
+# Simulating a sales dataset (replace this with actual data loading in real case)
+data = {
+    'date': pd.date_range('2020-01-01', periods=100, freq='D'),
+    'store': np.random.choice([1, 2, 3], 100),  # Store ID
+    'item': np.random.choice([101, 102, 103], 100),  # Item ID
+    'sales': np.random.randint(50, 200, 100),  # Sales in units
+    'promotion': np.random.choice([0, 1], 100)  # Promotion on that day (0: no promotion, 1: promotion)
+}
+
+df = pd.DataFrame(data)
+
+# Step 2: Preprocess the data
+# Extract features from the 'date' column
+df['day_of_week'] = df['date'].dt.dayofweek
+df['month'] = df['date'].dt.month
+
+# Features (X) and target variable (y)
+X = df[['store', 'item', 'promotion', 'day_of_week', 'month']]
+y = df['sales']
+
+# Step 3: Split the dataset into training and testing sets (70% training, 30% testing)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 4: Standardize the features (important for some algorithms, though not required for Linear Regression)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Step 5: Train the Linear Regression model
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# Step 6: Make predictions on the test set
+y_pred = model.predict(X_test_scaled)
+
+# Step 7: Evaluate the model's performance
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+# Print evaluation metrics
+print(f"Mean Squared Error (MSE): {mse:.4f}")
+print(f"Root Mean Squared Error (RMSE): {rmse:.4f}")
+print(f"R-squared (R2): {r2:.4f}")
+
+# Step 8: Plot actual vs predicted sales
+plt.scatter(y_test, y_pred)
+plt.xlabel('Actual Sales')
+plt.ylabel('Predicted Sales')
+plt.title('Actual vs Predicted Sales')
+plt.show()
